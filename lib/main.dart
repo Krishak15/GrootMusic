@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get_navigation/get_navigation.dart';
+import 'package:grootmusic/models/art_provider.dart';
 import 'package:grootmusic/views/home_screen.dart';
 import 'package:grootmusic/views/playlists_screen.dart';
 import 'package:grootmusic/views/songs_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(ChangeNotifierProvider(
+      create: (context) => ArtProvider(), child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {

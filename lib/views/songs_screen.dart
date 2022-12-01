@@ -8,14 +8,17 @@ import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:get/get.dart';
 import 'package:get/get_state_manager/src/simple/list_notifier.dart';
+import 'package:grootmusic/models/art_provider.dart';
 import 'package:grootmusic/views/artwork.dart';
-import 'package:grootmusic/views/wave.dart';
+import 'package:grootmusic/views/mainartwork.dart';
+
 import 'package:grootmusic/widgets/artwork.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:lottie/lottie.dart';
 import 'package:marquee/marquee.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
 class SongsScreen extends StatefulWidget {
@@ -43,6 +46,11 @@ class _SongsScreenState extends State<SongsScreen> {
     super.dispose();
   }
 
+  void changetos(int seconds) {
+    Duration _duration = Duration(seconds: seconds);
+    widget.player.seek(_duration);
+  }
+
   playmusic() {
     try {
       widget.player
@@ -60,14 +68,10 @@ class _SongsScreenState extends State<SongsScreen> {
       print("Error loading audio source: $e");
     }
     widget.player.durationStream.listen((d) {
-      setState(() {
-        duration = d!;
-      });
-      widget.player.positionStream.listen((p) {
-        setState(() {
-          position = p;
-        });
-      });
+      duration = d!;
+    });
+    widget.player.positionStream.listen((p) {
+      position = p;
     });
   }
 
@@ -118,15 +122,9 @@ class _SongsScreenState extends State<SongsScreen> {
                       BoxDecoration(borderRadius: BorderRadius.circular(20)),
                   width: MediaQuery.of(context).size.width / 1.3,
                   height: MediaQuery.of(context).size.height * 0.19,
-                  child: QueryArtworkWidget(
-                    id: widget.songModel.id,
-                    type: ArtworkType.AUDIO,
-                    // artworkFit: BoxFit.fill,
-                    artworkWidth: MediaQuery.of(context).size.width / 1.8,
-                    artworkHeight: MediaQuery.of(context).size.height * 0.30,
-                    artworkBorder: BorderRadius.circular(20),
-                    quality: 100,
-                    artworkQuality: FilterQuality.high,
+                  child: MainArt(
+                    widget: widget,
+                    ids: widget.songModel.id,
                   ),
                 ),
                 SizedBox(
