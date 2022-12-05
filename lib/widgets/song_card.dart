@@ -1,9 +1,11 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:flutter/material.dart';
-import 'package:iconsax/iconsax.dart';
+
 import 'package:on_audio_query/on_audio_query.dart';
 
 class SongCard extends StatefulWidget {
+  const SongCard({super.key});
+
   @override
   State<SongCard> createState() => _SongCardState();
 }
@@ -13,7 +15,6 @@ class _SongCardState extends State<SongCard> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 
@@ -28,8 +29,9 @@ class _SongCardState extends State<SongCard> {
             ignoreCase: true,
           ),
           builder: (context, item) {
-            if (item.data == null)
-              return Center(child: const CircularProgressIndicator());
+            if (item.data == null) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
             if (item.data!.isEmpty) return const Text("Musics not found!");
             return ListView.builder(
@@ -62,7 +64,7 @@ class _SongCardState extends State<SongCard> {
                         width: MediaQuery.of(context).size.width * 0.50,
                         borderRadius: BorderRadius.circular(16),
                         child: Container(
-                          margin: EdgeInsets.only(bottom: 15),
+                          margin: const EdgeInsets.only(bottom: 15),
                           height: 50,
                           width: MediaQuery.of(context).size.width * 0.37,
                           decoration: BoxDecoration(
@@ -96,9 +98,10 @@ class _SongCardState extends State<SongCard> {
                                   ),
                                 ],
                               ),
+                              // ignore: prefer_const_constructors
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Icon(
+                                child: const Icon(
                                   Icons.play_circle,
                                   color: Colors.deepPurple,
                                 ),

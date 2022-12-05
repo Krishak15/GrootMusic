@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+
 import 'package:grootmusic/views/songs_screen.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:provider/provider.dart';
 
 class MainArt extends StatelessWidget {
   const MainArt({
@@ -15,7 +17,7 @@ class MainArt extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return QueryArtworkWidget(
-      id: widget.songModel.id,
+      id: ids,
       type: ArtworkType.AUDIO,
       // artworkFit: BoxFit.fill,
       artworkWidth: MediaQuery.of(context).size.width / 1.8,

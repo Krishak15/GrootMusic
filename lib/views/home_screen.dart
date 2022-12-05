@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:grootmusic/model/songslist.dart';
 import 'package:grootmusic/views/songs_screen.dart';
 import 'package:grootmusic/widgets/song_card.dart';
 import 'package:iconsax/iconsax.dart';
@@ -131,6 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             physics: NeverScrollableScrollPhysics(),
                             itemCount: item.data!.length,
                             itemBuilder: (context, index) {
+                              SongList.SongsSkip.add(item.data);
                               return Container(
                                 height: 75,
                                 margin: EdgeInsets.only(bottom: 10, right: 20),
@@ -191,9 +193,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 MaterialPageRoute(
                                                   builder: (context) =>
                                                       SongsScreen(
+                                                    songId: index,
                                                     songModel:
                                                         item.data![index],
-                                                    player: _audioPlayer,
+                                                    audioPlayer: _audioPlayer,
                                                     ids: item.data![index].id,
                                                   ),
                                                 ));
