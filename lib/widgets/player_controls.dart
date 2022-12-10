@@ -14,6 +14,7 @@ import '../controllers/song_properties.dart';
 class SliderStream extends StatefulWidget {
   final int songsId;
   SliderStream({
+    this.TitleSong,
     Key? key,
     required Stream<SeekBarData> seekBarDataStream,
     required this.widget,
@@ -23,6 +24,7 @@ class SliderStream extends StatefulWidget {
 
   final Stream<SeekBarData> _seekBarDataStream;
   final SongsScreen widget;
+  var TitleSong;
 
   @override
   State<SliderStream> createState() => _SliderStreamState();
@@ -32,6 +34,7 @@ class _SliderStreamState extends State<SliderStream> {
   int c = 1;
 
   skipnext() {
+    //SongSkip Forward
     c++;
     try {
       widget.widget.audioPlayer.setAudioSource(AudioSource.uri(
@@ -39,14 +42,44 @@ class _SliderStreamState extends State<SliderStream> {
       setState(() {
         SongList.songDetails =
             SongList.SongsSkip[0][widget.widget.songId + c].title.toString();
+        SongList.artistD =
+            SongList.SongsSkip[0][widget.widget.songId + c].artist.toString();
+        SongList.artistT = SongList.SongsSkip[0][widget.widget.songId + c].id;
+
+        // print("================================${SongList.songDetails}");
+        // print("====++++++++++++++++++++++=====${SongList.artistT}");
       });
       MediaItem(
           id: '${SongList.SongsSkip[0][widget.widget.songId + c].id}',
           title: '${SongList.SongsSkip[0][widget.widget.songId + c].title}',
           artist: '${SongList.SongsSkip[0][widget.widget.songId + c].artist}',
-          album: '${widget.widget.songModel.album}'
-          // artUri: widget.songModel.uri
-          );
+          album: '${widget.widget.songModel.album}');
+      widget.widget.audioPlayer.play();
+      SongsProperties.isPlaying = true;
+    } catch (e) {
+      print("Error loading audio source: $e");
+      log("Unable to load Audio Source");
+    }
+  }
+
+  previous() {
+    //SongSkip Backward
+    c--;
+    try {
+      widget.widget.audioPlayer.setAudioSource(AudioSource.uri(
+          Uri.parse(SongList.SongsSkip[0][widget.widget.songId + c].uri!)));
+      setState(() {
+        SongList.songDetails =
+            SongList.SongsSkip[0][widget.widget.songId + c].title.toString();
+        SongList.artistD =
+            SongList.SongsSkip[0][widget.widget.songId + c].artist.toString();
+        SongList.artistT = SongList.SongsSkip[0][widget.widget.songId + c].id;
+      });
+      MediaItem(
+          id: '${SongList.SongsSkip[0][widget.widget.songId + c].id}',
+          title: '${SongList.SongsSkip[0][widget.widget.songId + c].title}',
+          artist: '${SongList.SongsSkip[0][widget.widget.songId + c].artist}',
+          album: '${widget.widget.songModel.album}');
       widget.widget.audioPlayer.play();
       SongsProperties.isPlaying = true;
     } catch (e) {
@@ -57,8 +90,12 @@ class _SliderStreamState extends State<SliderStream> {
 
   @override
   Widget build(BuildContext context) {
+    bool rep = false;
+    var ico;
+    ico = Iconsax.repeat;
+    final refreshr = BackgroundFilter();
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 50),
+      padding: const EdgeInsets.symmetric(vertical: 0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
@@ -82,31 +119,31 @@ class _SliderStreamState extends State<SliderStream> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              StreamBuilder<SequenceState?>(
-                stream: widget.widget.audioPlayer.sequenceStateStream,
-                builder: (context, index) {
-                  return IconButton(
-                      onPressed: widget.widget.audioPlayer.hasPrevious
-                          ? widget.widget.audioPlayer.seekToPrevious
-                          : null,
-                      icon: Icon(
-                        Iconsax.previous,
-                        color: Colors.white,
-                        size: 40,
-                      ));
-                },
-              ),
+              // StreamBuilder<SequenceState?>(
+              //   stream: widget.widget.audioPlayer.sequenceStateStream,
+              //   builder: (context, index) {
+              //     return IconButton(
+              //         onPressed: () {
+              //           previous();
+              //           widget.widget.audioPlayer.seekToPrevious;
+              //         },
+              //         icon: const Icon(
+              //           Iconsax.previous,
+              //           color: Colors.white,
+              //           size: 40,
+              //         ));
+              //   },
+              // ),
               StreamBuilder<PlayerState>(
                 stream: widget.widget.audioPlayer.playerStateStream,
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     final playerState = snapshot.data;
                     final processingState = playerState!.processingState;
-                    if (processingState == ProcessingState.loading ||
-                        processingState == ProcessingState.buffering) {
+                    if (processingState == ProcessingState.loading) {
                       return const Icon(
                         Iconsax.data,
-                        size: 64,
+                        size: 79.5,
                       );
                     } else if (!widget.widget.audioPlayer.playing) {
                       return IconButton(
@@ -140,48 +177,44 @@ class _SliderStreamState extends State<SliderStream> {
                   } else {
                     return const Icon(
                       Iconsax.data,
-                      size: 64,
+                      size: 79.5,
                     );
                   }
                 },
               ),
-              StreamBuilder<SequenceState?>(
-                stream: widget.widget.audioPlayer.sequenceStateStream,
-                builder: (context, index) {
-                  return IconButton(
-                      onPressed: widget.widget.audioPlayer.hasNext
-                          ? widget.widget.audioPlayer.seekToNext
-                          : null,
-                      icon: const Icon(
-                        Iconsax.next,
-                        color: Colors.white,
-                        size: 40,
-                      ));
-                },
-              ),
+              // StreamBuilder<SequenceState?>(
+              //   stream: widget.widget.audioPlayer.sequenceStateStream,
+              //   builder: (context, index) {
+              //     return IconButton(
+              //         onPressed: (() {
+              //           setState(() {});
+              //           skipnext();
+              //           widget.widget.audioPlayer.seekToNext();
+              //         }),
+              //         icon: const Icon(
+              //           Iconsax.next,
+              //           color: Colors.white,
+              //           size: 40,
+              //         ));
+              //   },
+              // ),
             ],
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
-            child: Row(
-              children: [
-                IconButton(
-                  iconSize: 40,
-                  icon: const Icon(
-                    Iconsax.shuffle,
-                    color: Colors.white,
-                  ),
-                  onPressed: () {
-                    print("==========================================");
-                    print(SongList.songDetails);
-                    skipnext();
-                    // print("======================");
-                    // print(SongList.SongsSkip[0][0].uri);
-                  },
-                ),
-              ],
-            ),
-          )
+          // Padding(
+          //   padding: const EdgeInsets.symmetric(horizontal: 38, vertical: 20),
+          //   child: Row(
+          //     children: [
+          //       IconButton(
+          //         iconSize: 40,
+          //         icon: Icon(
+          //           rep == false ? Iconsax.repeat : Iconsax.repeate_one,
+          //           color: Colors.white,
+          //         ),
+          //         onPressed: () {},
+          //       ),
+          //     ],
+          //   ),
+          // )
         ],
       ),
     );

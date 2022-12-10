@@ -26,6 +26,7 @@ import '../widgets/widgets.dart';
 class SongsScreen extends StatefulWidget {
   SongsScreen(
       {super.key,
+      required this.lislen,
       required this.songModel,
       required this.audioPlayer,
       this.ids,
@@ -38,6 +39,7 @@ class SongsScreen extends StatefulWidget {
   final QueryArtworkWidget? SongThumb;
   final playPauseNotifier = ValueNotifier<bool>(false);
   int songId = 0;
+  final lislen;
 
   @override
   State<SongsScreen> createState() => _SongsScreenState();
@@ -52,7 +54,7 @@ class _SongsScreenState extends State<SongsScreen> {
   Duration duration = const Duration();
   Duration position = const Duration();
   bool playico = false;
-
+  int c = 1;
   void changetos(int seconds) {
     Duration _duration = Duration(seconds: seconds);
     widget.audioPlayer.seek(_duration);
@@ -75,6 +77,10 @@ class _SongsScreenState extends State<SongsScreen> {
     });
   }
 
+  void refresh() {
+    setState(() {});
+  }
+
   Stream<SeekBarData> get _seekBarDataStream =>
       rxdart.Rx.combineLatest2<Duration, Duration?, SeekBarData>(
           widget.audioPlayer.positionStream, widget.audioPlayer.durationStream,
@@ -88,6 +94,8 @@ class _SongsScreenState extends State<SongsScreen> {
           .setAudioSource(AudioSource.uri(Uri.parse(widget.songModel.uri!)));
       setState(() {
         SongList.songDetails = widget.songModel.title.toString();
+        SongList.artistD = widget.songModel.artist.toString();
+        SongList.artistT = widget.songModel.id;
       });
       MediaItem(
           id: '${widget.songModel.id}',
@@ -104,6 +112,71 @@ class _SongsScreenState extends State<SongsScreen> {
     }
   }
 
+  skipnext() {
+    //SongSkip Forward
+
+    if (widget.songId + c <= widget.lislen) {
+      c++;
+      print("==============================${SongList.artistT}");
+      try {
+        widget.audioPlayer.setAudioSource(AudioSource.uri(
+            Uri.parse(SongList.SongsSkip[0][widget.songId + c].uri!)));
+        setState(() {
+          SongList.songDetails =
+              SongList.SongsSkip[0][widget.songId + c].title.toString();
+          SongList.artistD =
+              SongList.SongsSkip[0][widget.songId + c].artist.toString();
+          SongList.artistT = SongList.SongsSkip[0][widget.songId + c].id;
+
+          // print("================================${SongList.songDetails}");
+          // print("====++++++++++++++++++++++=====${SongList.artistT}");
+        });
+        MediaItem(
+            id: '${SongList.SongsSkip[0][widget.songId + c].id}',
+            title: '${SongList.SongsSkip[0][widget.songId + c].title}',
+            artist: '${SongList.SongsSkip[0][widget.songId + c].artist}',
+            album: '${widget.songModel.album}');
+        widget.audioPlayer.play();
+        SongsProperties.isPlaying = true;
+      } catch (e) {
+        print("Error loading audio source: $e");
+        log("Unable to load Audio Source");
+      }
+    } else if (widget.songId + c + 1 <= widget.lislen) {
+      final SnackBar _snackBar = SnackBar(
+        content: const Text('No more Skippable Songs'),
+        duration: const Duration(seconds: 3),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(_snackBar);
+    }
+  }
+
+  previous() {
+    //SongSkip Backward
+    c--;
+    try {
+      widget.audioPlayer.setAudioSource(AudioSource.uri(
+          Uri.parse(SongList.SongsSkip[0][widget.songId + c].uri!)));
+      setState(() {
+        SongList.songDetails =
+            SongList.SongsSkip[0][widget.songId + c].title.toString();
+        SongList.artistD =
+            SongList.SongsSkip[0][widget.songId + c].artist.toString();
+        SongList.artistT = SongList.SongsSkip[0][widget.songId + c].id;
+      });
+      MediaItem(
+          id: '${SongList.SongsSkip[0][widget.songId + c].id}',
+          title: '${SongList.SongsSkip[0][widget.songId + c].title}',
+          artist: '${SongList.SongsSkip[0][widget.songId + c].artist}',
+          album: '${widget.songModel.album}');
+      widget.audioPlayer.play();
+      SongsProperties.isPlaying = true;
+    } catch (e) {
+      print("Error loading audio source: $e");
+      log("Unable to load Audio Source");
+    }
+  }
+
   // void changeToSeconds(int seconds) {
   //   Duration duration = Duration(seconds: seconds);
   //   widget.audioPlayer.seek(duration);
@@ -111,6 +184,7 @@ class _SongsScreenState extends State<SongsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // print("==${SongList.artistT}");
     AudioPlayer _player = AudioPlayer();
     print(widget.SongThumb);
     return Scaffold(
@@ -124,7 +198,7 @@ class _SongsScreenState extends State<SongsScreen> {
             Container(
               child: Artwork(
                 //artwork
-                ide: widget.songModel.id,
+                ide: SongList.artistT,
               ),
             ),
           ]),
@@ -145,7 +219,7 @@ class _SongsScreenState extends State<SongsScreen> {
                   child: widget.SongThumb == null
                       ? MainArt(
                           widget: widget,
-                          ids: widget.songModel.id,
+                          ids: SongList.artistT,
                         )
                       : Image.asset("assets/images/moosikicon.png"),
                 ),
@@ -177,7 +251,7 @@ class _SongsScreenState extends State<SongsScreen> {
               ],
             ),
           ),
-          const _BackgroundFilter(),
+          const BackgroundFilter(),
           Padding(
             padding: EdgeInsets.symmetric(
                 vertical: MediaQuery.of(context).size.height * 0.30),
@@ -188,61 +262,137 @@ class _SongsScreenState extends State<SongsScreen> {
                   height: 100,
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(top: 18.0),
+                  padding: const EdgeInsets.only(top: 18.0, left: 8),
                   child: Container(
-                    height: 50,
-                    width: MediaQuery.of(context).size.width / 1.15,
-                    child: Marquee(
-                      text: widget.songModel.title.toString(),
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 24),
-                      scrollAxis: Axis.horizontal,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      blankSpace: 250.0,
-                      velocity: 120.0,
-                      showFadingOnlyWhenScrolling: false,
-                      fadingEdgeEndFraction: 0.04,
-                      fadingEdgeStartFraction: 0.04,
-                      startPadding: 1.0,
-                      pauseAfterRound: const Duration(seconds: 2),
-                      accelerationDuration: const Duration(milliseconds: 2),
-                      accelerationCurve: Curves.linear,
-                      decelerationDuration: const Duration(milliseconds: 1000),
-                      decelerationCurve: Curves.easeOut,
-                    ),
-                  ),
+                      height: 50,
+                      width: MediaQuery.of(context).size.width / 1.15,
+                      child: Text(
+                        SongList.songDetails.toString(),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 24),
+                      )
+                      //  Marquee(
+                      //   text: SongList.songDetails.toString(),
+                      //   style: const TextStyle(
+                      //       fontWeight: FontWeight.bold, fontSize: 24),
+                      //   scrollAxis: Axis.horizontal,
+                      //   crossAxisAlignment: CrossAxisAlignment.center,
+                      //   blankSpace: 250.0,
+                      //   velocity: 100.0,
+                      //   pauseAfterRound: Duration(seconds: 3),
+                      //   showFadingOnlyWhenScrolling: false,
+                      //   fadingEdgeEndFraction: 0.04,
+                      //   fadingEdgeStartFraction: 0.04,
+                      //   startPadding: 1.0,
+                      //   accelerationDuration: const Duration(milliseconds: 2),
+                      //   accelerationCurve: Curves.linear,
+                      //   decelerationDuration: const Duration(milliseconds: 1000),
+                      //   decelerationCurve: Curves.easeOut,
+                      // ),
+                      ),
+                ),
+                const SizedBox(
+                  height: 8,
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(left: 22.0),
+                  padding: const EdgeInsets.only(
+                    left: 22.0,
+                  ),
                   child: Container(
                       height: 40,
                       width: MediaQuery.of(context).size.width / 1.1,
-                      child: Text(widget.songModel.artist.toString(),
+                      child: Text(SongList.artistD.toString(),
                           style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
                               color: Colors.white.withOpacity(0.4)))),
                 ),
-                const SizedBox(
-                  height: 10,
-                ),
               ],
             ),
           ),
-          SliderStream(
-              seekBarDataStream: _seekBarDataStream,
-              widget: widget,
-              songsId: widget.songId),
+          const SizedBox(
+            height: 10,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 80),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Stack(children: [
+                  Positioned(
+                    child: SliderStream(
+                        seekBarDataStream: _seekBarDataStream,
+                        widget: widget,
+                        songsId: widget.songId),
+                  ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 20,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        IconButton(
+                            onPressed: () {
+                              setState(() {
+                                previous();
+                              });
+                            },
+                            icon: const Icon(
+                              Iconsax.previous,
+                              color: Colors.white,
+                              size: 40,
+                            )),
+                        const SizedBox(
+                          width: 60,
+                        ),
+                        IconButton(
+                            onPressed: () {
+                              print(
+                                  "=================songid${widget.songId + c}==========");
+                              // print(
+                              //     "=================length${SongList.SongsSkip.length}==========");
+                              print(
+                                  "=================Lislength${widget.lislen}==========");
+                              if (widget.songId + c <=
+                                  SongList.SongsSkip.length) {
+                                skipnext();
+                              } else {
+                                print(
+                                    "jhgfdsfdghjkljhjgcgfuhi333##############k");
+                              }
+                            },
+                            icon: const Icon(
+                              Iconsax.next,
+                              color: Colors.white,
+                              size: 40,
+                            )),
+                      ],
+                    ),
+                  ),
+                ]),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _BackgroundFilter extends StatelessWidget {
-  const _BackgroundFilter({
+class BackgroundFilter extends StatefulWidget {
+  const BackgroundFilter({
     Key? key,
   }) : super(key: key);
+
+  @override
+  State<BackgroundFilter> createState() => BackgroundFilterState();
+}
+
+class BackgroundFilterState extends State<BackgroundFilter> {
+  refresh() {
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {

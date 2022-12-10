@@ -188,11 +188,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                       IconButton(
                                           onPressed: () {
+                                            // SongList.artistL
+                                            //     .add(item.data![index].id);
                                             Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
                                                   builder: (context) =>
                                                       SongsScreen(
+                                                    lislen: item.data!.length,
                                                     songId: index,
                                                     songModel:
                                                         item.data![index],
@@ -201,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   ),
                                                 ));
                                           },
-                                          icon: Icon(
+                                          icon: const Icon(
                                             Icons.play_circle,
                                             color: Colors.white,
                                           ))
