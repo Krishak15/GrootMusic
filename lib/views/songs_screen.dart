@@ -26,19 +26,19 @@ import '../widgets/widgets.dart';
 class SongsScreen extends StatefulWidget {
   SongsScreen(
       {super.key,
-      required this.lislen,
-      required this.songModel,
-      required this.audioPlayer,
+      this.songModel,
+      this.lislen,
+      this.audioPlayer,
       this.ids,
-      required this.songId,
+      this.songId,
       this.SongThumb});
 
-  final SongModel songModel;
-  AudioPlayer audioPlayer = AudioPlayer();
+  final SongModel? songModel;
+  AudioPlayer? audioPlayer = AudioPlayer();
   final ids;
   final QueryArtworkWidget? SongThumb;
   final playPauseNotifier = ValueNotifier<bool>(false);
-  int songId = 0;
+  int? songId = 0;
   final lislen;
 
   @override
@@ -57,7 +57,7 @@ class _SongsScreenState extends State<SongsScreen> {
   int c = 1;
   void changetos(int seconds) {
     Duration _duration = Duration(seconds: seconds);
-    widget.audioPlayer.seek(_duration);
+    widget.audioPlayer!.seek(_duration);
   }
 
   @override
@@ -83,28 +83,29 @@ class _SongsScreenState extends State<SongsScreen> {
 
   Stream<SeekBarData> get _seekBarDataStream =>
       rxdart.Rx.combineLatest2<Duration, Duration?, SeekBarData>(
-          widget.audioPlayer.positionStream, widget.audioPlayer.durationStream,
+          widget.audioPlayer!.positionStream,
+          widget.audioPlayer!.durationStream,
           (Duration position, Duration? duration) {
         return SeekBarData(position, duration ?? Duration.zero);
       });
 
   void playMusic() {
     try {
-      widget.audioPlayer
-          .setAudioSource(AudioSource.uri(Uri.parse(widget.songModel.uri!)));
+      widget.audioPlayer!
+          .setAudioSource(AudioSource.uri(Uri.parse(widget.songModel!.uri!)));
       setState(() {
-        SongList.songDetails = widget.songModel.title.toString();
-        SongList.artistD = widget.songModel.artist.toString();
-        SongList.artistT = widget.songModel.id;
+        SongList.songDetails = widget.songModel!.title.toString();
+        SongList.artistD = widget.songModel!.artist.toString();
+        SongList.artistT = widget.songModel!.id;
       });
       MediaItem(
-          id: '${widget.songModel.id}',
-          title: '${widget.songModel.title}',
-          artist: '${widget.songModel.artist}',
-          album: '${widget.songModel.album}'
+          id: '${widget.songModel!.id}',
+          title: '${widget.songModel!.title}',
+          artist: '${widget.songModel!.artist}',
+          album: '${widget.songModel!.album}'
           // artUri: widget.songModel.uri
           );
-      widget.audioPlayer.play();
+      widget.audioPlayer!.play();
       SongsProperties.isPlaying = true;
     } catch (e) {
       print("Error loading audio source: $e");
@@ -115,66 +116,78 @@ class _SongsScreenState extends State<SongsScreen> {
   skipnext() {
     //SongSkip Forward
 
-    if (widget.songId + c <= widget.lislen) {
+    if (widget.songId! + c < widget.lislen) {
       c++;
       print("==============================${SongList.artistT}");
       try {
-        widget.audioPlayer.setAudioSource(AudioSource.uri(
-            Uri.parse(SongList.SongsSkip[0][widget.songId + c].uri!)));
+        widget.audioPlayer!.setAudioSource(AudioSource.uri(
+            Uri.parse(SongList.SongsSkip[0][widget.songId! + c].uri!)));
         setState(() {
           SongList.songDetails =
-              SongList.SongsSkip[0][widget.songId + c].title.toString();
+              SongList.SongsSkip[0][widget.songId! + c].title.toString();
           SongList.artistD =
-              SongList.SongsSkip[0][widget.songId + c].artist.toString();
-          SongList.artistT = SongList.SongsSkip[0][widget.songId + c].id;
+              SongList.SongsSkip[0][widget.songId! + c].artist.toString();
+          SongList.artistT = SongList.SongsSkip[0][widget.songId! + c].id;
 
           // print("================================${SongList.songDetails}");
           // print("====++++++++++++++++++++++=====${SongList.artistT}");
         });
         MediaItem(
-            id: '${SongList.SongsSkip[0][widget.songId + c].id}',
-            title: '${SongList.SongsSkip[0][widget.songId + c].title}',
-            artist: '${SongList.SongsSkip[0][widget.songId + c].artist}',
-            album: '${widget.songModel.album}');
-        widget.audioPlayer.play();
+            id: '${SongList.SongsSkip[0][widget.songId! + c].id}',
+            title: '${SongList.SongsSkip[0][widget.songId! + c].title}',
+            artist: '${SongList.SongsSkip[0][widget.songId! + c].artist}',
+            album: '${widget.songModel!.album}');
+        widget.audioPlayer!.play();
         SongsProperties.isPlaying = true;
       } catch (e) {
         print("Error loading audio source: $e");
         log("Unable to load Audio Source");
       }
-    } else if (widget.songId + c + 1 <= widget.lislen) {
-      final SnackBar _snackBar = SnackBar(
-        content: const Text('No more Skippable Songs'),
-        duration: const Duration(seconds: 3),
+    } else {
+      // ignore: prefer_const_declarations
+      final SnackBar _snackBar = const SnackBar(
+        content: Text('No more Skippable Songs'),
+        duration: Duration(seconds: 1),
+        behavior: SnackBarBehavior.floating,
       );
       ScaffoldMessenger.of(context).showSnackBar(_snackBar);
     }
   }
 
   previous() {
-    //SongSkip Backward
-    c--;
-    try {
-      widget.audioPlayer.setAudioSource(AudioSource.uri(
-          Uri.parse(SongList.SongsSkip[0][widget.songId + c].uri!)));
-      setState(() {
-        SongList.songDetails =
-            SongList.SongsSkip[0][widget.songId + c].title.toString();
-        SongList.artistD =
-            SongList.SongsSkip[0][widget.songId + c].artist.toString();
-        SongList.artistT = SongList.SongsSkip[0][widget.songId + c].id;
-      });
-      MediaItem(
-          id: '${SongList.SongsSkip[0][widget.songId + c].id}',
-          title: '${SongList.SongsSkip[0][widget.songId + c].title}',
-          artist: '${SongList.SongsSkip[0][widget.songId + c].artist}',
-          album: '${widget.songModel.album}');
-      widget.audioPlayer.play();
-      SongsProperties.isPlaying = true;
-    } catch (e) {
-      print("Error loading audio source: $e");
-      log("Unable to load Audio Source");
+    if (widget.songId! + c >= 0) {
+      c--;
+      try {
+        widget.audioPlayer!.setAudioSource(AudioSource.uri(
+            Uri.parse(SongList.SongsSkip[0][widget.songId! + c].uri!)));
+        setState(() {
+          SongList.songDetails =
+              SongList.SongsSkip[0][widget.songId! + c].title.toString();
+          SongList.artistD =
+              SongList.SongsSkip[0][widget.songId! + c].artist.toString();
+          SongList.artistT = SongList.SongsSkip[0][widget.songId! + c].id;
+        });
+        MediaItem(
+            id: '${SongList.SongsSkip[0][widget.songId! + c].id}',
+            title: '${SongList.SongsSkip[0][widget.songId! + c].title}',
+            artist: '${SongList.SongsSkip[0][widget.songId! + c].artist}',
+            album: '${widget.songModel!.album}');
+        widget.audioPlayer!.play();
+        SongsProperties.isPlaying = true;
+      } catch (e) {
+        print("Error loading audio source: $e");
+        log("Unable to load Audio Source");
+      }
+    } else {
+      // ignore: prefer_const_constructors
+      final SnackBar _snackBar = SnackBar(
+        content: const Text('No more Skippable Songs'),
+        duration: const Duration(seconds: 1),
+        behavior: SnackBarBehavior.floating,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(_snackBar);
     }
+    //SongSkip Backward
   }
 
   // void changeToSeconds(int seconds) {
@@ -229,28 +242,34 @@ class _SongsScreenState extends State<SongsScreen> {
               ],
             ),
           ),
-          Container(
-            height: MediaQuery.of(context).size.height / 2,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                widget.audioPlayer.playing == true
-                    ? Container(
-                        width: 150,
-                        height: 100,
-                        child: Lottie.asset("assets/playing.json",
-                            reverse: true,
-                            // animate: anim,
-                            fit: BoxFit.contain,
-                            frameRate: FrameRate(240)),
-                      )
-                    : SizedBox(),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.80,
-                )
-              ],
-            ),
-          ),
+          StreamBuilder(
+              stream: widget.audioPlayer!.playingStream,
+              builder: (context, snapshot) {
+                if (widget.audioPlayer!.playing) {
+                  return Container(
+                    height: MediaQuery.of(context).size.height / 2,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Container(
+                          width: 150,
+                          height: 100,
+                          child: Lottie.asset("assets/playing.json",
+                              reverse: true,
+                              // animate: anim,
+                              fit: BoxFit.contain,
+                              frameRate: FrameRate(240)),
+                        ),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.80,
+                        )
+                      ],
+                    ),
+                  );
+                } else {
+                  return SizedBox();
+                }
+              }),
           const BackgroundFilter(),
           Padding(
             padding: EdgeInsets.symmetric(
@@ -264,12 +283,15 @@ class _SongsScreenState extends State<SongsScreen> {
                 Padding(
                   padding: const EdgeInsets.only(top: 18.0, left: 8),
                   child: Container(
-                      height: 50,
+                      // height: 50,
                       width: MediaQuery.of(context).size.width / 1.15,
                       child: Text(
                         SongList.songDetails.toString(),
+                        maxLines: 2,
                         style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 24),
+                            overflow: TextOverflow.ellipsis,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 24),
                       )
                       //  Marquee(
                       //   text: SongList.songDetails.toString(),
@@ -296,7 +318,7 @@ class _SongsScreenState extends State<SongsScreen> {
                 ),
                 Padding(
                   padding: const EdgeInsets.only(
-                    left: 22.0,
+                    left: 23.0,
                   ),
                   child: Container(
                       height: 40,
@@ -314,7 +336,8 @@ class _SongsScreenState extends State<SongsScreen> {
             height: 10,
           ),
           Padding(
-            padding: const EdgeInsets.only(bottom: 80),
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).size.height * 0.08),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -323,51 +346,60 @@ class _SongsScreenState extends State<SongsScreen> {
                     child: SliderStream(
                         seekBarDataStream: _seekBarDataStream,
                         widget: widget,
-                        songsId: widget.songId),
+                        songsId: widget.songId!),
                   ),
                   Positioned(
                     left: 0,
-                    right: 0,
+                    right: 4,
                     bottom: 20,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        IconButton(
-                            onPressed: () {
-                              setState(() {
-                                previous();
-                              });
-                            },
-                            icon: const Icon(
-                              Iconsax.previous,
-                              color: Colors.white,
-                              size: 40,
-                            )),
-                        const SizedBox(
-                          width: 60,
-                        ),
-                        IconButton(
-                            onPressed: () {
-                              print(
-                                  "=================songid${widget.songId + c}==========");
-                              // print(
-                              //     "=================length${SongList.SongsSkip.length}==========");
-                              print(
-                                  "=================Lislength${widget.lislen}==========");
-                              if (widget.songId + c <=
-                                  SongList.SongsSkip.length) {
-                                skipnext();
-                              } else {
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  print(
+                                      "=================songid${widget.songId! + c}==========");
+                                  // print(
+                                  //     "=================length${SongList.SongsSkip.length}==========");
+                                  print(
+                                      "=================Lislength${widget.lislen}==========");
+                                  previous();
+                                });
+                              },
+                              icon: const Icon(
+                                Iconsax.previous,
+                                color: Colors.white,
+                                size: 40,
+                              )),
+                          const SizedBox(
+                            width: 60,
+                          ),
+                          IconButton(
+                              onPressed: () {
                                 print(
-                                    "jhgfdsfdghjkljhjgcgfuhi333##############k");
-                              }
-                            },
-                            icon: const Icon(
-                              Iconsax.next,
-                              color: Colors.white,
-                              size: 40,
-                            )),
-                      ],
+                                    "=================songid${widget.songId! + c}==========");
+                                // print(
+                                //     "=================length${SongList.SongsSkip.length}==========");
+                                print(
+                                    "=================Lislength${widget.lislen}==========");
+                                if (widget.songId! + c <=
+                                    SongList.SongsSkip.length) {
+                                  skipnext();
+                                } else {
+                                  print(
+                                      "jhgfdsfdghjkljhjgcgfuhi333##############k");
+                                }
+                              },
+                              icon: const Icon(
+                                Iconsax.next,
+                                color: Colors.white,
+                                size: 40,
+                              )),
+                        ],
+                      ),
                     ),
                   ),
                 ]),

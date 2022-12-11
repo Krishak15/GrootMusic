@@ -1,11 +1,14 @@
 // ignore_for_file: curly_braces_in_flow_control_structures
 
 import 'package:blurrycontainer/blurrycontainer.dart';
+import 'package:bottom_bar_with_sheet/bottom_bar_with_sheet.dart';
+import 'package:bottom_navy_bar/bottom_navy_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:grootmusic/model/songslist.dart';
+import 'package:grootmusic/views/favourites_screen.dart';
 import 'package:grootmusic/views/songs_screen.dart';
 import 'package:grootmusic/widgets/song_card.dart';
 import 'package:iconsax/iconsax.dart';
@@ -34,16 +37,26 @@ Future askPermission() async {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int currentIndex = 0;
+  final screens = [FavScreen()];
   final OnAudioQuery _audioQuery = OnAudioQuery();
-
   final _audioPlayer = AudioPlayer();
+  final _bottomBarController = BottomBarWithSheetController(initialIndex: 0);
+
+  var selectedIndex;
 
   @override
   Widget build(BuildContext context) {
     @override
     void initState() {
       super.initState();
+
       askPermission();
+    }
+
+    @override
+    void dispose() {
+      super.dispose();
     }
 
     return Container(
@@ -58,167 +71,235 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: const _CustomAppBar(),
-        bottomNavigationBar: const _CustomBottomNavbar(),
-        body: SingleChildScrollView(
-          physics: BouncingScrollPhysics(),
-          child: Column(
+
+        // bottomNavigationBar: BottomNavyBar(
+        //   mainAxisAlignment: MainAxisAlignment.spaceAround,
+        //   backgroundColor: Colors.deepPurple,
+        //   selectedIndex: currentIndex,
+        //   iconSize: 25,
+        //   showElevation: true,
+        //   itemCornerRadius: 40,
+        //   curve: Curves.easeIn,
+        //   onItemSelected: (index) => setState(() => currentIndex = index),
+        //   items: <BottomNavyBarItem>[
+        //     BottomNavyBarItem(
+        //       icon: Icon(Iconsax.home),
+        //       title: Text('Home'),
+        //       activeColor: Colors.white,
+        //       textAlign: TextAlign.center,
+        //     ),
+        //     BottomNavyBarItem(
+        //       icon: Icon(Iconsax.heart),
+        //       title: Text('Favourites'),
+        //       activeColor: Colors.amber,
+        //       textAlign: TextAlign.center,
+        //     ),
+        //   ],
+        // ),
+        body: PageView(
+            onPageChanged: (indexPage) {
+              setState(() {
+                currentIndex = indexPage;
+              });
+            },
             children: [
-              const _DisMusic(),
-              Padding(
-                padding: const EdgeInsets.only(top: 20, left: 20, bottom: 20),
+              SingleChildScrollView(
+                physics: BouncingScrollPhysics(),
                 child: Column(
                   children: [
+                    const _DisMusic(),
                     Padding(
-                      padding: EdgeInsets.only(right: 20),
-                      child: SectionHeader(title: 'Trending Music'),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    SongCard(), //------------------------Song Card
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(right: 20),
-                      child: SectionHeader(title: 'Discover Music'),
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    FutureBuilder<List<SongModel>>(
-                      future: _audioQuery.querySongs(
-                          sortType: SongSortType.DISPLAY_NAME,
-                          uriType: UriType.EXTERNAL,
-                          ignoreCase: false),
-                      builder: (context, item) {
-                        if (item.data == null)
-                          return const CircularProgressIndicator();
+                      padding:
+                          const EdgeInsets.only(top: 20, left: 20, bottom: 20),
+                      child: Column(
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(right: 20),
+                            child: SectionHeader(title: 'Trending Music'),
+                          ),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          SongCard(), //------------------------Song Card
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.only(right: 20),
+                            child: SectionHeader(title: 'Discover Music'),
+                          ),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          FutureBuilder<List<SongModel>>(
+                            future: _audioQuery.querySongs(
+                                sortType: SongSortType.DISPLAY_NAME,
+                                uriType: UriType.EXTERNAL,
+                                path: 'YMusic',
+                                ignoreCase: false),
+                            builder: (context, item) {
+                              if (item.data == null)
+                                return const CircularProgressIndicator();
 
-                        if (item.data!.isEmpty)
-                          return Column(
-                            children: [
-                              const Text("Musics not found!"),
-                              const SizedBox(
-                                height: 15,
-                              ),
-                              InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      askPermission();
-                                      if (refresh == 'Allow Media access') {
-                                        refresh = 'Refresh';
-                                      }
-                                    });
-                                  },
-                                  child: BlurryContainer(
-                                    height: 40,
-                                    width: 200,
-                                    child: Center(
-                                      child: Text(
-                                        refresh.toString(),
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w600),
-                                      ),
+                              if (item.data!.isEmpty)
+                                return Column(
+                                  children: [
+                                    const Text("Musics not found!"),
+                                    const SizedBox(
+                                      height: 15,
                                     ),
-                                    blur: 7,
-                                    elevation: 1,
-                                    color: Colors.purple.withOpacity(0.3),
-                                  ))
-                            ],
-                          );
-                        return ListView.builder(
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemCount: item.data!.length,
-                            itemBuilder: (context, index) {
-                              SongList.SongsSkip.add(item.data);
-                              return Container(
-                                height: 75,
-                                margin: EdgeInsets.only(bottom: 10, right: 20),
-                                padding: EdgeInsets.symmetric(horizontal: 20),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(15),
-                                    color: Colors.deepPurple.withOpacity(0.7)),
-                                child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      QueryArtworkWidget(
-                                        id: item.data![index].id,
-                                        type: ArtworkType.AUDIO,
-                                        artworkFit: BoxFit.fitHeight,
-                                        artworkWidth: 50,
-                                        artworkHeight: 50,
-                                        artworkBorder:
-                                            BorderRadius.circular(15),
-                                        artworkClipBehavior: Clip.antiAlias,
-                                      ),
-                                      const SizedBox(
-                                        width: 20,
-                                      ),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              item.data![index].title,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyLarge!
-                                                  .copyWith(
-                                                      fontWeight:
-                                                          FontWeight.bold),
+                                    InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            askPermission();
+                                            if (refresh ==
+                                                'Allow Media access') {
+                                              refresh = 'Refresh';
+                                            }
+                                          });
+                                        },
+                                        child: BlurryContainer(
+                                          height: 40,
+                                          width: 200,
+                                          // ignore: sort_child_properties_last
+                                          child: Center(
+                                            child: Text(
+                                              refresh.toString(),
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.w600),
                                             ),
-                                            Text(
-                                              item.data![index].artist
-                                                  .toString(),
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodySmall!
-                                                  .copyWith(
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                            ),
-                                          ],
-                                        ),
+                                          ),
+                                          blur: 7,
+                                          elevation: 1,
+                                          color: Colors.purple.withOpacity(0.3),
+                                        ))
+                                  ],
+                                );
+                              return ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: NeverScrollableScrollPhysics(),
+                                  itemCount: item.data!.length,
+                                  itemBuilder: (context, index) {
+                                    SongList.SongsSkip.add(item.data);
+                                    return InkWell(
+                                      onTap: () {
+                                        // SongList.artistL
+                                        //     .add(item.data![index].id);
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => SongsScreen(
+                                                lislen: item.data!.length,
+                                                songId: index,
+                                                songModel: item.data![index],
+                                                audioPlayer: _audioPlayer,
+                                                ids: item.data![index].id,
+                                              ),
+                                            ));
+                                      },
+                                      child: Container(
+                                        height: 75,
+                                        margin: EdgeInsets.only(
+                                            bottom: 10, right: 20),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 20),
+                                        decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(15),
+                                            color: Colors.deepPurple
+                                                .withOpacity(0.7)),
+                                        child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceAround,
+                                            children: [
+                                              QueryArtworkWidget(
+                                                id: item.data![index].id,
+                                                type: ArtworkType.AUDIO,
+                                                artworkFit: BoxFit.fitHeight,
+                                                artworkWidth: 50,
+                                                artworkHeight: 50,
+                                                artworkBorder:
+                                                    BorderRadius.circular(15),
+                                                artworkClipBehavior:
+                                                    Clip.antiAlias,
+                                              ),
+                                              const SizedBox(
+                                                width: 20,
+                                              ),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Text(
+                                                      item.data![index].title,
+                                                      maxLines: 2,
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .bodyLarge!
+                                                          .copyWith(
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                    ),
+                                                    Text(
+                                                      item.data![index].artist
+                                                          .toString(),
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .bodySmall!
+                                                          .copyWith(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              IconButton(
+                                                  onPressed: () {
+                                                    // SongList.artistL
+                                                    //     .add(item.data![index].id);
+                                                    Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              SongsScreen(
+                                                            lislen: item
+                                                                .data!.length,
+                                                            songId: index,
+                                                            songModel: item
+                                                                .data![index],
+                                                            audioPlayer:
+                                                                _audioPlayer,
+                                                            ids: item
+                                                                .data![index]
+                                                                .id,
+                                                          ),
+                                                        ));
+                                                  },
+                                                  icon: const Icon(
+                                                    Icons.play_circle,
+                                                    color: Colors.white,
+                                                  ))
+                                            ]),
                                       ),
-                                      IconButton(
-                                          onPressed: () {
-                                            // SongList.artistL
-                                            //     .add(item.data![index].id);
-                                            Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      SongsScreen(
-                                                    lislen: item.data!.length,
-                                                    songId: index,
-                                                    songModel:
-                                                        item.data![index],
-                                                    audioPlayer: _audioPlayer,
-                                                    ids: item.data![index].id,
-                                                  ),
-                                                ));
-                                          },
-                                          icon: const Icon(
-                                            Icons.play_circle,
-                                            color: Colors.white,
-                                          ))
-                                    ]),
-                              );
-                            });
-                      },
+                                    );
+                                  });
+                            },
+                          )
+                        ],
+                      ),
                     )
                   ],
                 ),
-              )
-            ],
-          ),
-        ),
+              ),
+            ]),
       ),
     );
   }
@@ -231,6 +312,7 @@ class _DisMusic extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    TextEditingController search = TextEditingController();
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Column(
@@ -254,6 +336,8 @@ class _DisMusic extends StatelessWidget {
             height: 40,
           ),
           TextFormField(
+            textInputAction: TextInputAction.search,
+            controller: search,
             decoration: InputDecoration(
               isDense: true,
               filled: true,
@@ -276,16 +360,20 @@ class _DisMusic extends StatelessWidget {
 }
 
 class _CustomBottomNavbar extends StatelessWidget {
-  const _CustomBottomNavbar({
+  _CustomBottomNavbar({
+    this.currentIndex,
     Key? key,
   }) : super(key: key);
+  var currentIndex;
 
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: (index) => currentIndex = index,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white54,
         showSelectedLabels: false,
         showUnselectedLabels: false,
         backgroundColor: Colors.deepPurple.shade800,
@@ -296,8 +384,8 @@ class _CustomBottomNavbar extends StatelessWidget {
               icon: Icon(Iconsax.heart), label: 'Favourites'),
           BottomNavigationBarItem(
               icon: Icon(Iconsax.play_circle), label: 'Play'),
-          BottomNavigationBarItem(
-              icon: Icon(Iconsax.profile_circle), label: 'Home'),
+          // BottomNavigationBarItem(
+          //     icon: Icon(Iconsax.profile_circle), label: 'Home'),
         ]);
   }
 }

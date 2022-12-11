@@ -8,6 +8,7 @@ import 'package:grootmusic/views/songs_screen.dart';
 import 'package:grootmusic/widgets/seekbar.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:on_audio_query/on_audio_query.dart';
 
 import '../controllers/song_properties.dart';
 
@@ -15,6 +16,7 @@ class SliderStream extends StatefulWidget {
   final int songsId;
   SliderStream({
     this.TitleSong,
+    this.songModelList,
     Key? key,
     required Stream<SeekBarData> seekBarDataStream,
     required this.widget,
@@ -24,7 +26,9 @@ class SliderStream extends StatefulWidget {
 
   final Stream<SeekBarData> _seekBarDataStream;
   final SongsScreen widget;
+  final List<SongModel>? songModelList;
   var TitleSong;
+  final audioPlayer = AudioPlayer();
 
   @override
   State<SliderStream> createState() => _SliderStreamState();
@@ -32,29 +36,37 @@ class SliderStream extends StatefulWidget {
 
 class _SliderStreamState extends State<SliderStream> {
   int c = 1;
+  bool isFavIcon = false;
+  int currentIndex = 0;
+  List<AudioSource> songList = [];
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   skipnext() {
     //SongSkip Forward
     c++;
     try {
-      widget.widget.audioPlayer.setAudioSource(AudioSource.uri(
-          Uri.parse(SongList.SongsSkip[0][widget.widget.songId + c].uri!)));
+      widget.widget.audioPlayer!.setAudioSource(AudioSource.uri(
+          Uri.parse(SongList.SongsSkip[0][widget.widget.songId! + c].uri!)));
       setState(() {
         SongList.songDetails =
-            SongList.SongsSkip[0][widget.widget.songId + c].title.toString();
+            SongList.SongsSkip[0][widget.widget.songId! + c].title.toString();
         SongList.artistD =
-            SongList.SongsSkip[0][widget.widget.songId + c].artist.toString();
-        SongList.artistT = SongList.SongsSkip[0][widget.widget.songId + c].id;
+            SongList.SongsSkip[0][widget.widget.songId! + c].artist.toString();
+        SongList.artistT = SongList.SongsSkip[0][widget.widget.songId! + c].id;
 
         // print("================================${SongList.songDetails}");
         // print("====++++++++++++++++++++++=====${SongList.artistT}");
       });
       MediaItem(
-          id: '${SongList.SongsSkip[0][widget.widget.songId + c].id}',
-          title: '${SongList.SongsSkip[0][widget.widget.songId + c].title}',
-          artist: '${SongList.SongsSkip[0][widget.widget.songId + c].artist}',
-          album: '${widget.widget.songModel.album}');
-      widget.widget.audioPlayer.play();
+          id: '${SongList.SongsSkip[0][widget.widget.songId! + c].id}',
+          title: '${SongList.SongsSkip[0][widget.widget.songId! + c].title}',
+          artist: '${SongList.SongsSkip[0][widget.widget.songId! + c].artist}',
+          album: '${widget.widget.songModel!.album}');
+      widget.widget.audioPlayer!.play();
       SongsProperties.isPlaying = true;
     } catch (e) {
       print("Error loading audio source: $e");
@@ -66,27 +78,29 @@ class _SliderStreamState extends State<SliderStream> {
     //SongSkip Backward
     c--;
     try {
-      widget.widget.audioPlayer.setAudioSource(AudioSource.uri(
-          Uri.parse(SongList.SongsSkip[0][widget.widget.songId + c].uri!)));
+      widget.widget.audioPlayer!.setAudioSource(AudioSource.uri(
+          Uri.parse(SongList.SongsSkip[0][widget.widget.songId! + c].uri!)));
       setState(() {
         SongList.songDetails =
-            SongList.SongsSkip[0][widget.widget.songId + c].title.toString();
+            SongList.SongsSkip[0][widget.widget.songId! + c].title.toString();
         SongList.artistD =
-            SongList.SongsSkip[0][widget.widget.songId + c].artist.toString();
-        SongList.artistT = SongList.SongsSkip[0][widget.widget.songId + c].id;
+            SongList.SongsSkip[0][widget.widget.songId! + c].artist.toString();
+        SongList.artistT = SongList.SongsSkip[0][widget.widget.songId! + c].id;
       });
       MediaItem(
-          id: '${SongList.SongsSkip[0][widget.widget.songId + c].id}',
-          title: '${SongList.SongsSkip[0][widget.widget.songId + c].title}',
-          artist: '${SongList.SongsSkip[0][widget.widget.songId + c].artist}',
-          album: '${widget.widget.songModel.album}');
-      widget.widget.audioPlayer.play();
+          id: '${SongList.SongsSkip[0][widget.widget.songId! + c].id}',
+          title: '${SongList.SongsSkip[0][widget.widget.songId! + c].title}',
+          artist: '${SongList.SongsSkip[0][widget.widget.songId! + c].artist}',
+          album: '${widget.widget.songModel!.album}');
+      widget.widget.audioPlayer!.play();
       SongsProperties.isPlaying = true;
     } catch (e) {
       print("Error loading audio source: $e");
       log("Unable to load Audio Source");
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -99,6 +113,52 @@ class _SliderStreamState extends State<SliderStream> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 50),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(
+                  Iconsax.shuffle,
+                  size: 35,
+                  color: Colors.white,
+                ),
+                InkWell(
+                  onTap: () {
+                    print("====================${currentIndex}");
+                    setState(() {});
+                    setState(() {
+                      if (isFavIcon == false) {
+                        isFavIcon = true;
+                      } else {
+                        isFavIcon = false;
+                      }
+                      SongsProperties.FaveSongMusicName.add(
+                          widget.songModelList![currentIndex].title);
+                      SongsProperties.FaveSongSingerName.add(
+                          widget.songModelList![currentIndex].artist ??
+                              "No Artist");
+                    });
+                  },
+                  child: Container(
+                      child: isFavIcon
+                          ? Icon(
+                              Iconsax.heart5,
+                              color: Colors.purple.shade300,
+                              size: 35,
+                            )
+                          : const Icon(
+                              Iconsax.heart,
+                              color: Colors.white,
+                              size: 35,
+                            )),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 10,
+          ),
           StreamBuilder<SeekBarData>(
             stream: widget._seekBarDataStream,
             builder: (context, snapshot) {
@@ -108,7 +168,7 @@ class _SliderStreamState extends State<SliderStream> {
                 child: SeekBar1(
                   position: PositionData?.position ?? Duration.zero,
                   duration: PositionData?.duration ?? Duration.zero,
-                  onChangeEnd: widget.widget.audioPlayer.seek,
+                  onChangeEnd: widget.widget.audioPlayer!.seek,
                 ),
               );
             },
@@ -135,7 +195,7 @@ class _SliderStreamState extends State<SliderStream> {
               //   },
               // ),
               StreamBuilder<PlayerState>(
-                stream: widget.widget.audioPlayer.playerStateStream,
+                stream: widget.widget.audioPlayer!.playerStateStream,
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     final playerState = snapshot.data;
@@ -145,10 +205,10 @@ class _SliderStreamState extends State<SliderStream> {
                         Iconsax.data,
                         size: 79.5,
                       );
-                    } else if (!widget.widget.audioPlayer.playing) {
+                    } else if (!widget.widget.audioPlayer!.playing) {
                       return IconButton(
                           iconSize: 63,
-                          onPressed: widget.widget.audioPlayer.play,
+                          onPressed: widget.widget.audioPlayer!.play,
                           icon: Icon(
                             Iconsax.play_circle,
                             color: Colors.white.withOpacity(0.85),
@@ -156,7 +216,7 @@ class _SliderStreamState extends State<SliderStream> {
                     } else if (processingState != ProcessingState.completed) {
                       return IconButton(
                           iconSize: 63,
-                          onPressed: widget.widget.audioPlayer.pause,
+                          onPressed: widget.widget.audioPlayer!.pause,
                           icon: Icon(
                             Iconsax.pause_circle,
                             color: Colors.white.withOpacity(0.85),
@@ -164,10 +224,10 @@ class _SliderStreamState extends State<SliderStream> {
                     } else {
                       return IconButton(
                           iconSize: 63,
-                          onPressed: () => widget.widget.audioPlayer.seek(
+                          onPressed: () => widget.widget.audioPlayer!.seek(
                                 Duration.zero,
-                                index: widget
-                                    .widget.audioPlayer.effectiveIndices!.first,
+                                index: widget.widget.audioPlayer!
+                                    .effectiveIndices!.first,
                               ),
                           icon: Icon(
                             Iconsax.repeat_circle,

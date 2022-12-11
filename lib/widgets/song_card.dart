@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 class SongCard extends StatefulWidget {
-  const SongCard({super.key});
+  const SongCard({this.song, super.key});
+
+  final song;
 
   @override
   State<SongCard> createState() => _SongCardState();
@@ -26,6 +28,7 @@ class _SongCardState extends State<SongCard> {
           future: _audioQuery.querySongs(
             sortType: SongSortType.TITLE,
             uriType: UriType.EXTERNAL,
+            path: 'YMusic',
             ignoreCase: true,
           ),
           builder: (context, item) {
@@ -39,78 +42,86 @@ class _SongCardState extends State<SongCard> {
                 itemCount: item.data!.length,
                 itemBuilder: (context, index) {
                   // print("---------------${item.data![index].title}");
-                  return Container(
-                    margin: EdgeInsets.only(right: 15),
-                    child: Stack(alignment: Alignment.bottomCenter, children: [
-                      InkWell(
-                        onTap: () {},
-                        child: Container(
+                  return InkWell(
+                    child: Container(
+                      margin: EdgeInsets.only(right: 15),
+                      child:
+                          Stack(alignment: Alignment.bottomCenter, children: [
+                        InkWell(
+                          onTap: () {},
+                          child: Container(
+                            width: MediaQuery.of(context).size.width * 0.50,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: QueryArtworkWidget(
+                              id: item.data![index].id,
+                              type: ArtworkType.AUDIO,
+                              artworkFit: BoxFit.cover,
+                              artworkWidth: 50,
+                              artworkHeight: 300,
+                              artworkBorder: BorderRadius.circular(15),
+                              artworkClipBehavior: Clip.antiAlias,
+                            ),
+                          ),
+                        ),
+                        BlurryContainer(
                           width: MediaQuery.of(context).size.width * 0.50,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: QueryArtworkWidget(
-                            id: item.data![index].id,
-                            type: ArtworkType.AUDIO,
-                            artworkFit: BoxFit.cover,
-                            artworkWidth: 50,
-                            artworkHeight: 200,
-                            artworkBorder: BorderRadius.circular(15),
-                            artworkClipBehavior: Clip.antiAlias,
-                          ),
-                        ),
-                      ),
-                      BlurryContainer(
-                        width: MediaQuery.of(context).size.width * 0.50,
-                        borderRadius: BorderRadius.circular(16),
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 15),
-                          height: 50,
-                          width: MediaQuery.of(context).size.width * 0.37,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item.data![index].title,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge!
-                                        .copyWith(
-                                            color: Colors.deepPurple,
-                                            fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    item.data![index].artist.toString(),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall!
-                                        .copyWith(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                              // ignore: prefer_const_constructors
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: const Icon(
-                                  Icons.play_circle,
-                                  color: Colors.deepPurple,
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 15),
+                            height: 60,
+                            width: MediaQuery.of(context).size.width * 0.37,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: 110,
+                                      child: Text(
+                                        item.data![index].title,
+                                        maxLines: 3,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge!
+                                            .copyWith(
+                                                overflow: TextOverflow.ellipsis,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    // Text(
+                                    //   item.data![index].artist.toString(),
+                                    //   style: Theme.of(context)
+                                    //       .textTheme
+                                    //       .bodySmall!
+                                    //       .copyWith(
+                                    //           color: Colors.white,
+                                    //           fontWeight: FontWeight.bold),
+                                    // ),
+                                  ],
                                 ),
-                              ),
-                            ],
+                                // ignore: prefer_const_constructors
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Icon(
+                                    Icons.play_circle,
+                                    color: Colors.deepPurple.shade100,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ]),
+                      ]),
+                    ),
                   );
                 });
           }),

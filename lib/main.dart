@@ -4,6 +4,7 @@ import 'package:get/get_navigation/get_navigation.dart';
 import 'package:grootmusic/controllers/slider_properties.dart';
 
 import 'package:grootmusic/views/home_screen.dart';
+import 'package:grootmusic/views/main_screen.dart';
 import 'package:grootmusic/views/playlists_screen.dart';
 import 'package:grootmusic/views/songs_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -31,10 +32,10 @@ class MyApp extends StatelessWidget {
           textTheme: Theme.of(context)
               .textTheme
               .apply(bodyColor: Colors.white, displayColor: Colors.white)),
-      home: const HomeScreen(),
+      home: const MainScreen(),
       getPages: [
         GetPage(name: '/', page: () => const HomeScreen()),
-        // GetPage(name: '/songs', page: () => SongsScreen()),
+        GetPage(name: '/songs', page: () => SongsScreen()),
         GetPage(name: '/playlists', page: () => const PlayList()),
       ],
     );
