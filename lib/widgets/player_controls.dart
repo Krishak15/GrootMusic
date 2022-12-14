@@ -52,6 +52,7 @@ class _SliderStreamState extends State<SliderStream> {
       widget.widget.audioPlayer!.setAudioSource(AudioSource.uri(
           Uri.parse(SongList.SongsSkip[0][widget.widget.songId! + c].uri!)));
       setState(() {
+        fulldat = SongList.SongsSkip[0][widget.widget.songId! + c];
         SongList.songDetails =
             SongList.SongsSkip[0][widget.widget.songId! + c].title.toString();
         SongList.artistD =
@@ -74,6 +75,8 @@ class _SliderStreamState extends State<SliderStream> {
     }
   }
 
+  SongModel? fulldat;
+
   previous() {
     //SongSkip Backward
     c--;
@@ -86,6 +89,8 @@ class _SliderStreamState extends State<SliderStream> {
         SongList.artistD =
             SongList.SongsSkip[0][widget.widget.songId! + c].artist.toString();
         SongList.artistT = SongList.SongsSkip[0][widget.widget.songId! + c].id;
+
+        fulldat = SongList.SongsSkip[0][widget.widget.songId! + c];
       });
       MediaItem(
           id: '${SongList.SongsSkip[0][widget.widget.songId! + c].id}',
@@ -100,10 +105,9 @@ class _SliderStreamState extends State<SliderStream> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
+    var sup = "HELOO";
     bool rep = false;
     var ico;
     ico = Iconsax.repeat;
@@ -125,19 +129,53 @@ class _SliderStreamState extends State<SliderStream> {
                 ),
                 InkWell(
                   onTap: () {
-                    print("====================${currentIndex}");
+                    SongsProperties.ind = currentIndex;
+                    SongsProperties.fav.add(SongsProperties.musicData);
+                    // SongsProperties.fav.add(fulldat);
+
                     setState(() {});
                     setState(() {
+                      print(
+                          "=================full data=======${SongsProperties.MusicData}");
+
                       if (isFavIcon == false) {
                         isFavIcon = true;
-                      } else {
-                        isFavIcon = false;
                       }
-                      SongsProperties.FaveSongMusicName.add(
-                          widget.songModelList![currentIndex].title);
-                      SongsProperties.FaveSongSingerName.add(
-                          widget.songModelList![currentIndex].artist ??
-                              "No Artist");
+
+                      if (SongsProperties.FaveSongMusicName.contains(SongList
+                          .SongsSkip[currentIndex][widget.widget.songId!]
+                          .title)) {
+                        SongsProperties.MusicData.remove(SongList
+                            .SongsSkip[currentIndex][widget.widget.songId!]);
+                        SongsProperties.FaveSongMusicName.remove(SongList
+                            .SongsSkip[currentIndex][widget.widget.songId!]
+                            .title);
+                        SongsProperties.FaveSongSingerName.remove(SongList
+                                .SongsSkip[currentIndex][widget.widget.songId!]
+                                .artist ??
+                            "No Artist");
+                        SongsProperties.Artwork.remove(SongList
+                            .SongsSkip[currentIndex][widget.widget.songId!].id);
+                      } else {
+                        SongsProperties.MusicData.add(
+                            SongList.SongsSkip[currentIndex]
+                                [widget.widget.songId!]); //ALL MUSIC DATA
+                        //----------------------------------------------//
+                        SongsProperties.FaveSongMusicName.add(SongList
+                            .SongsSkip[currentIndex][widget.widget.songId!]
+                            .title);
+                        SongsProperties.FaveSongSingerName.add(SongList
+                                .SongsSkip[currentIndex][widget.widget.songId!]
+                                .artist ??
+                            "No Artist");
+                        SongsProperties.Artwork.add(SongList
+                            .SongsSkip[currentIndex][widget.widget.songId!].id);
+
+                        print("====================${currentIndex}");
+                        // print(
+                        //     "====================${SongsProperties.MusicData}");
+                        print("===================${SongsProperties.Artwork}");
+                      }
                     });
                   },
                   child: Container(

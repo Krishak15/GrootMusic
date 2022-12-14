@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:grootmusic/controllers/song_properties.dart';
 import 'package:grootmusic/model/songslist.dart';
 import 'package:grootmusic/views/favourites_screen.dart';
 import 'package:grootmusic/views/songs_screen.dart';
@@ -36,7 +37,8 @@ Future askPermission() async {
   }
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with AutomaticKeepAliveClientMixin {
   int currentIndex = 0;
   final screens = [FavScreen()];
   final OnAudioQuery _audioQuery = OnAudioQuery();
@@ -46,18 +48,23 @@ class _HomeScreenState extends State<HomeScreen> {
   var selectedIndex;
 
   @override
+  void initState() {
+    super.initState();
+
+    askPermission();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
-    @override
-    void initState() {
-      super.initState();
-
-      askPermission();
-    }
-
-    @override
-    void dispose() {
-      super.dispose();
-    }
+    super.build(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -96,210 +103,191 @@ class _HomeScreenState extends State<HomeScreen> {
         //     ),
         //   ],
         // ),
-        body: PageView(
-            onPageChanged: (indexPage) {
-              setState(() {
-                currentIndex = indexPage;
-              });
-            },
+        body: SingleChildScrollView(
+          physics: BouncingScrollPhysics(),
+          child: Column(
             children: [
-              SingleChildScrollView(
-                physics: BouncingScrollPhysics(),
+              const _DisMusic(),
+              Padding(
+                padding: const EdgeInsets.only(top: 20, left: 20, bottom: 20),
                 child: Column(
                   children: [
-                    const _DisMusic(),
-                    Padding(
-                      padding:
-                          const EdgeInsets.only(top: 20, left: 20, bottom: 20),
-                      child: Column(
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.only(right: 20),
-                            child: SectionHeader(title: 'Trending Music'),
-                          ),
-                          const SizedBox(
-                            height: 20,
-                          ),
-                          SongCard(), //------------------------Song Card
-                          const SizedBox(
-                            height: 20,
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(right: 20),
-                            child: SectionHeader(title: 'Discover Music'),
-                          ),
-                          const SizedBox(
-                            height: 20,
-                          ),
-                          FutureBuilder<List<SongModel>>(
-                            future: _audioQuery.querySongs(
-                                sortType: SongSortType.DISPLAY_NAME,
-                                uriType: UriType.EXTERNAL,
-                                path: 'YMusic',
-                                ignoreCase: false),
-                            builder: (context, item) {
-                              if (item.data == null)
-                                return const CircularProgressIndicator();
+                    const Padding(
+                      padding: EdgeInsets.only(right: 20),
+                      child: SectionHeader(title: 'Trending Music'),
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    SongCard(), //------------------------Song Card
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(right: 20),
+                      child: SectionHeader(title: 'Discover Music'),
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    FutureBuilder<List<SongModel>>(
+                      future: _audioQuery.querySongs(
+                          sortType: SongSortType.DISPLAY_NAME,
+                          uriType: UriType.EXTERNAL,
+                          path: 'YMusic',
+                          ignoreCase: false),
+                      builder: (context, item) {
+                        if (item.data == null)
+                          return const CircularProgressIndicator();
 
-                              if (item.data!.isEmpty)
-                                return Column(
-                                  children: [
-                                    const Text("Musics not found!"),
-                                    const SizedBox(
-                                      height: 15,
-                                    ),
-                                    InkWell(
-                                        onTap: () {
-                                          setState(() {
-                                            askPermission();
-                                            if (refresh ==
-                                                'Allow Media access') {
-                                              refresh = 'Refresh';
-                                            }
-                                          });
-                                        },
-                                        child: BlurryContainer(
-                                          height: 40,
-                                          width: 200,
-                                          // ignore: sort_child_properties_last
-                                          child: Center(
-                                            child: Text(
-                                              refresh.toString(),
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.w600),
-                                            ),
-                                          ),
-                                          blur: 7,
-                                          elevation: 1,
-                                          color: Colors.purple.withOpacity(0.3),
-                                        ))
-                                  ],
-                                );
-                              return ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: NeverScrollableScrollPhysics(),
-                                  itemCount: item.data!.length,
-                                  itemBuilder: (context, index) {
-                                    SongList.SongsSkip.add(item.data);
-                                    return InkWell(
-                                      onTap: () {
-                                        // SongList.artistL
-                                        //     .add(item.data![index].id);
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => SongsScreen(
-                                                lislen: item.data!.length,
-                                                songId: index,
-                                                songModel: item.data![index],
-                                                audioPlayer: _audioPlayer,
-                                                ids: item.data![index].id,
-                                              ),
-                                            ));
-                                      },
-                                      child: Container(
-                                        height: 75,
-                                        margin: EdgeInsets.only(
-                                            bottom: 10, right: 20),
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 20),
-                                        decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(15),
-                                            color: Colors.deepPurple
-                                                .withOpacity(0.7)),
-                                        child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceAround,
-                                            children: [
-                                              QueryArtworkWidget(
-                                                id: item.data![index].id,
-                                                type: ArtworkType.AUDIO,
-                                                artworkFit: BoxFit.fitHeight,
-                                                artworkWidth: 50,
-                                                artworkHeight: 50,
-                                                artworkBorder:
-                                                    BorderRadius.circular(15),
-                                                artworkClipBehavior:
-                                                    Clip.antiAlias,
-                                              ),
-                                              const SizedBox(
-                                                width: 20,
-                                              ),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    Text(
-                                                      item.data![index].title,
-                                                      maxLines: 2,
-                                                      style: Theme.of(context)
-                                                          .textTheme
-                                                          .bodyLarge!
-                                                          .copyWith(
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
-                                                    ),
-                                                    Text(
-                                                      item.data![index].artist
-                                                          .toString(),
-                                                      style: Theme.of(context)
-                                                          .textTheme
-                                                          .bodySmall!
-                                                          .copyWith(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              IconButton(
-                                                  onPressed: () {
-                                                    // SongList.artistL
-                                                    //     .add(item.data![index].id);
-                                                    Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              SongsScreen(
-                                                            lislen: item
-                                                                .data!.length,
-                                                            songId: index,
-                                                            songModel: item
-                                                                .data![index],
-                                                            audioPlayer:
-                                                                _audioPlayer,
-                                                            ids: item
-                                                                .data![index]
-                                                                .id,
-                                                          ),
-                                                        ));
-                                                  },
-                                                  icon: const Icon(
-                                                    Icons.play_circle,
-                                                    color: Colors.white,
-                                                  ))
-                                            ]),
+                        if (item.data!.isEmpty)
+                          return Column(
+                            children: [
+                              const Text("Musics not found!"),
+                              const SizedBox(
+                                height: 15,
+                              ),
+                              InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      askPermission();
+                                      if (refresh == 'Allow Media access') {
+                                        refresh = 'Refresh';
+                                      }
+                                    });
+                                  },
+                                  child: BlurryContainer(
+                                    height: 40,
+                                    width: 200,
+                                    // ignore: sort_child_properties_last
+                                    child: Center(
+                                      child: Text(
+                                        refresh.toString(),
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w600),
                                       ),
-                                    );
-                                  });
-                            },
-                          )
-                        ],
-                      ),
+                                    ),
+                                    blur: 7,
+                                    elevation: 1,
+                                    color: Colors.purple.withOpacity(0.3),
+                                  ))
+                            ],
+                          );
+                        return ListView.builder(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            itemCount: item.data!.length,
+                            itemBuilder: (context, index) {
+                              SongList.SongsSkip.add(item.data);
+                              SongsProperties.musicData = item.data!;
+                              return InkWell(
+                                onTap: () {
+                                  // SongList.artistL
+                                  //     .add(item.data![index].id);
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => SongsScreen(
+                                          lislen: item.data!.length,
+                                          songId: index,
+                                          songModel: item.data![index],
+                                          audioPlayer: _audioPlayer,
+                                          ids: item.data![index].id,
+                                        ),
+                                      ));
+                                },
+                                child: Container(
+                                  height: 75,
+                                  margin:
+                                      EdgeInsets.only(bottom: 10, right: 20),
+                                  padding: EdgeInsets.symmetric(horizontal: 20),
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(15),
+                                      color:
+                                          Colors.deepPurple.withOpacity(0.7)),
+                                  child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        QueryArtworkWidget(
+                                          id: item.data![index].id,
+                                          type: ArtworkType.AUDIO,
+                                          artworkFit: BoxFit.fitHeight,
+                                          artworkWidth: 50,
+                                          artworkHeight: 50,
+                                          artworkBorder:
+                                              BorderRadius.circular(15),
+                                          artworkClipBehavior: Clip.antiAlias,
+                                        ),
+                                        const SizedBox(
+                                          width: 20,
+                                        ),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                item.data![index].title,
+                                                maxLines: 2,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyLarge!
+                                                    .copyWith(
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                              ),
+                                              Text(
+                                                item.data![index].artist
+                                                    .toString(),
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodySmall!
+                                                    .copyWith(
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        IconButton(
+                                            onPressed: () {
+                                              // SongList.artistL
+                                              //     .add(item.data![index].id);
+                                              Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        SongsScreen(
+                                                      lislen: item.data!.length,
+                                                      songId: index,
+                                                      songModel:
+                                                          item.data![index],
+                                                      audioPlayer: _audioPlayer,
+                                                      ids: item.data![index].id,
+                                                    ),
+                                                  ));
+                                            },
+                                            icon: const Icon(
+                                              Icons.play_circle,
+                                              color: Colors.white,
+                                            ))
+                                      ]),
+                                ),
+                              );
+                            });
+                      },
                     )
                   ],
                 ),
-              ),
-            ]),
+              )
+            ],
+          ),
+        ),
       ),
     );
   }

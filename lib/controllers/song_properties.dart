@@ -8,4 +8,10 @@ class SongsProperties {
   static bool isPlaying = false;
   static dynamic FaveSongMusicName = [];
   static dynamic FaveSongSingerName = [];
+  static dynamic MusicData = [];
+  static dynamic Artwork = [];
+
+  static dynamic fav = [];
+  static dynamic musicData;
+  static int ind = 0; //adding data from home screen
 }
