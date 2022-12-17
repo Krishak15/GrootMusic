@@ -1,16 +1,7 @@
-# grootmusic
+# Groot Music
 
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+![my badge](https://img.shields.io/badge/Made%20with-Flutter-blue?style=for-the-badge&logo=flutter)  &nbsp;  &nbsp; ![my badge](https://img.shields.io/github/last-commit/Krishak15/GrootMusic/master?style=for-the-badge) 
+&nbsp;
+## "Groot Music: Your personal music player for all your local tracks."
+&nbsp;
+![GrootMusic](https://user-images.githubusercontent.com/34805219/208242669-2952c7ca-8944-4e92-b898-1a6064e0841f.png)
